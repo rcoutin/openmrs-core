@@ -9,6 +9,7 @@
  */
 package org.openmrs.validator;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Date;
 import java.util.List;
 
@@ -116,10 +117,9 @@ public class PersonAddressValidator implements Validator {
 						    Context.getLocale()));
 					}
 				}
-				catch (Exception e) {
+				catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
 					//wrong field declared in template
-					errors
-					        .reject(Context.getMessageSourceService().getMessage(
+					errors.reject(Context.getMessageSourceService().getMessage(
 					            "AddressTemplate.error.fieldNotDeclaredInTemplate", new Object[] { fieldName },
 					            Context.getLocale()));
 				}
