@@ -251,9 +251,10 @@ public class ConceptValidatorChangeSet implements CustomTaskChange {
 					if (entry.getValue().size() < 2) {
 						continue;
 					}
-					
-					logMessages.add("The name '" + entry.getKey() + "' was found multiple times for the concept with id '"
-					        + conceptId + "' in locale '" + conceptNameLocale.getDisplayName() + "'");					
+					if (conceptNameLocale != null) {
+						logMessages.add("The name '" + entry.getKey() + "' was found multiple times for the concept with id '"
+										+ conceptId + "' in locale '" + conceptNameLocale.getDisplayName() + "'");
+					}
 				}
 				
 				//if this locale has no preferred name found, set one
