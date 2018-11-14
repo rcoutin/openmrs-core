@@ -1852,8 +1852,8 @@ public class InitializationFilter extends StartupFilter {
 				}
 				return true;
 			}
-			catch (Exception e) {
-				//pass
+			catch (ClassNotFoundException | SQLException e) {
+				log.error("Error: " + e.getMessage());
 			}
 			finally {
 				try {
@@ -1861,8 +1861,8 @@ public class InitializationFilter extends StartupFilter {
 						connection.close();
 					}
 				}
-				catch (Exception e) {
-					//pass
+				catch (SQLException e) {
+					log.error("Error: " + e.getMessage());
 				}
 			}
 			//if catch an exception while query database, then consider as database is empty.
