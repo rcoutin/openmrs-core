@@ -71,9 +71,17 @@ public class SourceMySqldiffFile implements CustomTaskChange {
 		
 		String username = runtimeProperties.getProperty(CONNECTION_USERNAME);
 		String password = runtimeProperties.getProperty(CONNECTION_PASSWORD);
-		
+		try{
 		if (username == null) {
 			username = System.getProperty(CONNECTION_USERNAME);
+			// Username Validation
+			if(!username.matches("[A-Za-z0-9_]+")){
+				username = null;
+				throw new IllegalArgumentException("Invalid Username");
+			}
+		}
+		}catch(IllegalArgumentException e){
+			log.error(e.getMessage());
 		}
 		if (password == null) {
 			password = System.getProperty(CONNECTION_PASSWORD);
