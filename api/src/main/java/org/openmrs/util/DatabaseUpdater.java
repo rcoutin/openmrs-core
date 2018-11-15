@@ -763,7 +763,9 @@ public class DatabaseUpdater {
 		}
 		finally {
 			try {
-				database.getConnection().close();
+				if(database!=null){
+					database.getConnection().close();
+				}
 			}
 			catch (Exception e) {
 				// pass
