@@ -32,16 +32,16 @@ import org.springframework.validation.Validator;
 
 /**
  * Validates {@link Concept} objects. <br>
- * These validations are also documented at <a href=
- * "https://wiki.openmrs.org/x/-gkdAg">https://wiki.openmrs.org/x/-gkdAg</a>.
- * Any changes made to this source also need to be reflected on that page.
+ * These validations are also documented at <a
+ * href="https://wiki.openmrs.org/x/-gkdAg">https://wiki.openmrs.org/x/-gkdAg</a>. Any changes made
+ * to this source also need to be reflected on that page.
  */
 @Handler(supports = { Concept.class }, order = 50)
 public class ConceptValidator extends BaseCustomizableValidator implements Validator {
-
+	
 	// Logger for this class
 	private static final Logger log = LoggerFactory.getLogger(ConceptValidator.class);
-
+	
 	/**
 	 * Determines if the command object being submitted is a valid type
 	 *
@@ -51,7 +51,7 @@ public class ConceptValidator extends BaseCustomizableValidator implements Valid
 	public boolean supports(Class<?> c) {
 		return Concept.class.isAssignableFrom(c);
 	}
-
+	
 	/**
 	 * Checks that a given concept object is valid.
 	 *
@@ -106,110 +106,100 @@ public class ConceptValidator extends BaseCustomizableValidator implements Valid
 		ValidationUtils.rejectIfEmpty(errors, "conceptClass", "Concept.conceptClass.empty");
 
 		boolean hasFullySpecifiedName = false;
-		try {
-			for (Locale conceptNameLocale : conceptToValidate.getAllConceptNameLocales()) {
-				boolean fullySpecifiedNameForLocaleFound = false;
-				boolean preferredNameForLocaleFound = false;
-				boolean shortNameForLocaleFound = false;
-				Set<String> validNamesFoundInLocale = new HashSet<>();
-				Collection<ConceptName> namesInLocale = conceptToValidate.getNames(conceptNameLocale);
-				for (ConceptName nameInLocale : namesInLocale) {
-					if (StringUtils.isBlank(nameInLocale.getName())) {
-						log.debug("Name in locale '" + conceptNameLocale.toString()
-								+ "' cannot be an empty string or white space");
-						errors.reject("Concept.name.empty");
-					}
-					if (nameInLocale.getLocalePreferred() != null) {
-						if (nameInLocale.getLocalePreferred() && !preferredNameForLocaleFound) {
-							if (nameInLocale.isIndexTerm()) {
-								log.warn("Preferred name in locale '" + conceptNameLocale.toString()
-										+ "' shouldn't be an index term");
-								errors.reject("Concept.error.preferredName.is.indexTerm");
-							} else if (nameInLocale.isShort()) {
-								log.warn("Preferred name in locale '" + conceptNameLocale.toString()
-										+ "' shouldn't be a short name");
-								errors.reject("Concept.error.preferredName.is.shortName");
-							} else if (nameInLocale.getVoided()) {
-								log.warn("Preferred name in locale '" + conceptNameLocale.toString()
-										+ "' shouldn't be a voided name");
-								errors.reject("Concept.error.preferredName.is.voided");
-							}
-
-							preferredNameForLocaleFound = true;
+		for (Locale conceptNameLocale : conceptToValidate.getAllConceptNameLocales()) {
+			boolean fullySpecifiedNameForLocaleFound = false;
+			boolean preferredNameForLocaleFound = false;
+			boolean shortNameForLocaleFound = false;
+			Set<String> validNamesFoundInLocale = new HashSet<>();
+			Collection<ConceptName> namesInLocale = conceptToValidate.getNames(conceptNameLocale);
+			for (ConceptName nameInLocale : namesInLocale) {
+				if (StringUtils.isBlank(nameInLocale.getName())) {
+					log.debug("Name in locale '" + conceptNameLocale.toString()
+					        + "' cannot be an empty string or white space");
+					errors.reject("Concept.name.empty");
+				}
+				if (nameInLocale.getLocalePreferred() != null) {
+					if (nameInLocale.getLocalePreferred() && !preferredNameForLocaleFound) {
+						if (nameInLocale.isIndexTerm()) {
+							log.warn("Preferred name in locale '" + conceptNameLocale.toString()
+							        + "' shouldn't be an index term");
+							errors.reject("Concept.error.preferredName.is.indexTerm");
+						} else if (nameInLocale.isShort()) {
+							log.warn("Preferred name in locale '" + conceptNameLocale.toString()
+							        + "' shouldn't be a short name");
+							errors.reject("Concept.error.preferredName.is.shortName");
+						} else if (nameInLocale.getVoided()) {
+							log.warn("Preferred name in locale '" + conceptNameLocale.toString()
+							        + "' shouldn't be a voided name");
+							errors.reject("Concept.error.preferredName.is.voided");
 						}
-						// should have one preferred name per locale
-						else if (nameInLocale.getLocalePreferred() && preferredNameForLocaleFound) {
-							log.warn("Found multiple preferred names in locale '" + conceptNameLocale.toString() + "'");
-							errors.reject("Concept.error.multipleLocalePreferredNames");
-						}
+						
+						preferredNameForLocaleFound = true;
 					}
-
-					if (nameInLocale.isFullySpecifiedName()) {
-						if (!hasFullySpecifiedName) {
-							hasFullySpecifiedName = true;
-						}
-						if (!fullySpecifiedNameForLocaleFound) {
-							fullySpecifiedNameForLocaleFound = true;
-						} else {
-							log.warn("Found multiple fully specified names in locale '" + conceptNameLocale.toString()
-									+ "'");
-							errors.reject("Concept.error.multipleFullySpecifiedNames");
-						}
-						if (nameInLocale.getVoided()) {
-							log.warn("Fully Specified name in locale '" + conceptNameLocale.toString()
-									+ "' shouldn't be a voided name");
-							errors.reject("Concept.error.fullySpecifiedName.is.voided");
-						}
-					}
-
-					if (nameInLocale.isShort()) {
-						if (!shortNameForLocaleFound) {
-							shortNameForLocaleFound = true;
-						}
-						// should have one short name per locale
-						else {
-							log.warn("Found multiple short names in locale '" + conceptNameLocale.toString() + "'");
-							errors.reject("Concept.error.multipleShortNames");
-						}
-					}
-
-					// find duplicate names for a non-retired concept
-					if (Context.getConceptService().isConceptNameDuplicate(nameInLocale)) {
-						throw new DuplicateConceptNameException("'" + nameInLocale.getName()
-								+ "' is a duplicate name in locale '" + conceptNameLocale.toString() + "'");
-					}
-
-					//
-					if (errors.hasErrors()) {
-						log.debug("Concept name '" + nameInLocale.getName() + "' for locale '" + conceptNameLocale
-								+ "' is invalid");
-						// if validation fails for any conceptName in current
-						// locale, don't proceed
-						// This helps not to have multiple messages shown that
-						// are identical though they might be
-						// for different conceptNames
-						return;
-					}
-
-					// No duplicate names allowed for the same locale and
-					// concept, keep the case the same
-					// except for short names
-					if (!nameInLocale.isShort() && !validNamesFoundInLocale.add(nameInLocale.getName().toLowerCase())) {
-						throw new DuplicateConceptNameException(
-								"'" + nameInLocale.getName() + "' is a duplicate name in locale '"
-										+ conceptNameLocale.toString() + "' for the same concept");
-					}
-
-					if (log.isDebugEnabled()) {
-						log.debug("Valid name found: " + nameInLocale.getName());
+					//should have one preferred name per locale
+					else if (nameInLocale.getLocalePreferred() && preferredNameForLocaleFound) {
+						log.warn("Found multiple preferred names in locale '" + conceptNameLocale.toString() + "'");
+						errors.reject("Concept.error.multipleLocalePreferredNames");
 					}
 				}
+				
+				if (nameInLocale.isFullySpecifiedName()) {
+					if (!hasFullySpecifiedName) {
+						hasFullySpecifiedName = true;
+					}
+					if (!fullySpecifiedNameForLocaleFound) {
+						fullySpecifiedNameForLocaleFound = true;
+					} else {
+						log.warn("Found multiple fully specified names in locale '" + conceptNameLocale.toString() + "'");
+						errors.reject("Concept.error.multipleFullySpecifiedNames");
+					}
+					if (nameInLocale.getVoided()) {
+						log.warn("Fully Specified name in locale '" + conceptNameLocale.toString()
+						        + "' shouldn't be a voided name");
+						errors.reject("Concept.error.fullySpecifiedName.is.voided");
+					}
+				}
+				
+				if (nameInLocale.isShort()) {
+					if (!shortNameForLocaleFound) {
+						shortNameForLocaleFound = true;
+					}
+					//should have one short name per locale
+					else {
+						log.warn("Found multiple short names in locale '" + conceptNameLocale.toString() + "'");
+						errors.reject("Concept.error.multipleShortNames");
+					}
+				}
+				
+				//find duplicate names for a non-retired concept
+				if (Context.getConceptService().isConceptNameDuplicate(nameInLocale)) {
+					throw new DuplicateConceptNameException("'" + nameInLocale.getName()
+					        + "' is a duplicate name in locale '" + conceptNameLocale.toString() + "'");
+				}
+				
+				//
+				if (errors.hasErrors()) {
+					log.debug("Concept name '" + nameInLocale.getName() + "' for locale '" + conceptNameLocale
+					        + "' is invalid");
+					//if validation fails for any conceptName in current locale, don't proceed
+					//This helps not to have multiple messages shown that are identical though they might be
+					//for different conceptNames
+					return;
+				}
+				
+				//No duplicate names allowed for the same locale and concept, keep the case the same
+				//except for short names
+				if (!nameInLocale.isShort() && !validNamesFoundInLocale.add(nameInLocale.getName().toLowerCase())) {
+					throw new DuplicateConceptNameException("'" + nameInLocale.getName()
+					        + "' is a duplicate name in locale '" + conceptNameLocale.toString() + "' for the same concept");
+				}
+				
+				if (log.isDebugEnabled()) {
+					log.debug("Valid name found: " + nameInLocale.getName());
+				}
 			}
-		} catch (NullPointerException e) {
-			// Catches possible null pointer dereference exception in cases of
-			// null "conceptToValidate"
-			log.error("Error: " + e.getMessage());
 		}
+		
 		//Ensure that each concept has at least a fully specified name
 		if (!hasFullySpecifiedName) {
 			log.debug("Concept has no fully specified name");
