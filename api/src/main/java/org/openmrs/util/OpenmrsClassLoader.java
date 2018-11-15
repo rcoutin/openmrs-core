@@ -708,6 +708,9 @@ public class OpenmrsClassLoader extends URLClassLoader {
 		}
 		
 		synchronized (ModuleClassLoader.class) {
+			if (libCacheFolder != null) {
+				return libCacheFolderInitialized ? libCacheFolder : null;
+			}
 			libCacheFolder = new File(OpenmrsUtil.getApplicationDataDirectory(), LIBCACHESUFFIX);
 			
 			log.debug("libraries cache folder is {}", libCacheFolder);
