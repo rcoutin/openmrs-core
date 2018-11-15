@@ -60,7 +60,7 @@ public class PersonByNameComparator implements Comparator<Person>, Serializable 
 		        : null, name2.getFamilyName() != null ? name2.getFamilyName().toLowerCase() : null);
 		
 		if (ret == 0) {
-			ret = OpenmrsUtil.compareWithNullAsGreatest(name1.getFamilyName2() != null ? name1.getFamilyName().toLowerCase()
+			ret = OpenmrsUtil.compareWithNullAsGreatest(name1.getFamilyName2() != null ? name1.getFamilyName2().toLowerCase()
 			        : null, name2.getFamilyName2() != null ? name2.getFamilyName2().toLowerCase() : null);
 		}
 		
