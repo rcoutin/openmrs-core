@@ -700,6 +700,13 @@ public class ModuleUtil {
 					URL base = http.getURL();
 					String loc = http.getHeaderField("Location");
 					URL target = null;
+
+					//Proof of Concept - Whitelist of allowed locations before we can set the target.
+					Set<String> allowedLocations = new HashSet<String>(Arrays.asList("exampleLocation1","exampleLocation2"));
+					if(!allowedLocations.contains(loc)) {
+						throw new IOException("The location is not in the list of allowed locations");	
+					} 
+					
 					if (loc != null) {
 						target = new URL(base, loc);
 					}
